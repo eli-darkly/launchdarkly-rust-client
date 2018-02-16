@@ -12,3 +12,4 @@ Not yet implemented:
 * A streaming client.
 * Analytics events.
 * A persistent feature store (e.g. Redis).
+* Any kind of logging or error handling.
