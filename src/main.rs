@@ -16,5 +16,7 @@ fn main() {
     let user = LDUser::new(String::from("bozo"))
         .with_email(Some(String::from("test@example.com")));
     let result = client.variation(String::from("new.dashboard"), &user, Value::Null);
-    println!("flag value is: {}", result);
+    println!("");
+    println!("flag value is: {} !!!!!", result);
+    println!("");
 }
