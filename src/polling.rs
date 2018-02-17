@@ -1,40 +1,63 @@
 
-// use std::sync::{Arc, Mutex};
-// use std::thread;
-// use std::time;
+use std::sync::{Arc, Mutex};
+use std::sync::mpsc;
+use std::sync::mpsc::{Sender, Receiver};
+use std::thread;
+use std::thread::JoinHandle;
+use std::time;
 
-use config::LDConfig;
 use feature_store::FeatureStore;
 use requestor::Requestor;
 
 
 pub struct PollingProcessor {
+	task: Arc<PollingProcessorTask>,
+	handle: Option<JoinHandle<()>>,
+	ready: Receiver<()>
+}
+
+struct PollingProcessorTask {
 	requestor: Requestor,
-	interval: u64
+	interval: u64,
+	store: Arc<Mutex<FeatureStore>>,
+	ready: Mutex<Sender<()>>
 }
 
 impl PollingProcessor {
-	pub fn new(sdk_key: String, config: &LDConfig) -> PollingProcessor {
+	pub fn new(sdk_key: String, store: &Arc<Mutex<FeatureStore>>, base_uri: &String, interval: u64) -> PollingProcessor {
+		let (tx, rx): (Sender<()>, Receiver<()>) = mpsc::channel();
+		let task: Arc<PollingProcessorTask> = Arc::new(PollingProcessorTask {
+			requestor: Requestor::new(sdk_key, base_uri),
+			interval: interval,
+			store: store.clone(),
+			ready: Mutex::new(tx)
+		});
 		PollingProcessor {
-			requestor: Requestor::new(sdk_key, config),
-			interval: config.polling_interval_millis
+			task: task,
+			handle: None,
+			ready: rx
 		}
 	}
 
-	pub fn poll(&self, store: &mut FeatureStore) {
-		match self.requestor.get_all_flags() {
-			Ok(flags) => store.init(&flags),
-			_ => () // TODO
-		}
+	pub fn start(&mut self) -> &Receiver<()> {
+		let task = self.task.clone();
+		let handle = thread::spawn(move || {
+			loop {
+				match task.requestor.get_all_flags() {
+					Ok(flags) => {
+						let mut store = task.store.lock().unwrap();
+						store.init(&flags);
+						// signal that we're ready
+						task.ready.lock().unwrap().send(()).unwrap();
+					},
+					_ => () // TODO: error logging
+				}
+				thread::sleep(time::Duration::from_millis(task.interval));
+			}
+		});
+		self.handle = Some(handle);
+		&self.ready
 	}
 
-	// TODO: make a thread - I have no idea how to make this work
-	// pub fn start(&self, store: &mut FeatureStore) {
-	// 	thread::spawn(move || {
-	// 		loop {
-	// 			self.poll(store);
-	// 			thread::sleep(time::Duration::from_millis(self.interval));
-	// 		}
-	// 	});
-	// }
+	// TODO: need a way to stop the task.
 }

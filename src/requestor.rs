@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use reqwest;
 use serde_json;
 
-use config::LDConfig;
 use flag::FeatureFlag;
 
 
@@ -21,10 +20,10 @@ struct AllData {
 
 impl Requestor {
 
-	pub fn new(sdk_key: String, config: &LDConfig) -> Requestor {
+	pub fn new(sdk_key: String, base_uri: &String) -> Requestor {
 		Requestor {
 			sdk_key: sdk_key,
-			base_uri: config.base_uri.clone(),
+			base_uri: base_uri.clone(),
 			client: reqwest::Client::new()
 		}
 	}

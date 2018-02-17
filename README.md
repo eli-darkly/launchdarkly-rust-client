@@ -3,12 +3,11 @@ This was begun as part of a day-long hackathon at LaunchDarkly. I started out kn
 
 The only functionality currently implemented is:
 
-* Polling for feature flags... one time.
+* Polling for feature flags.
 * Evaluating feature flags. All currently supported operators should work.
 
 Not yet implemented:
 
-* A polling thread.
 * A streaming client.
 * Analytics events.
 * A persistent feature store (e.g. Redis).

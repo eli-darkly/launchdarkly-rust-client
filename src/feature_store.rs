@@ -11,7 +11,7 @@ pub struct FeatureStore {
 
 impl FeatureStore {
 
-	pub fn new() -> FeatureStore {
+	pub fn in_memory_store() -> FeatureStore {
 		let items: HashMap<String, FeatureFlag> = HashMap::new();
 		FeatureStore { items }
 	}

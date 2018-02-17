@@ -361,4 +361,6 @@ fn parse_semver(value: &Value) -> Option<Version> {
 		},
 		_ => None
 	}
+	// TODO: LaunchDarkly allows semvers to omit the minor and/or patch versions, so if we
+	// get a parse error here, we should try adding ".0" or ".0.0" at the appropriate point.
 }
